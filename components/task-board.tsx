@@ -4,10 +4,23 @@ import { useState } from "react"
 import TaskColumn from "@/components/task-column"
 import TaskList from "@/components/task-list"
 
+interface Task {
+  id: string
+  title: string
+  description: string
+  status: string
+  priority: "high" | "medium" | "low"
+  dueDate: string
+  assignee: string
+  tags: string[]
+  completed: boolean
+}
+
 interface TaskBoardProps {
   viewMode: "board" | "list"
   filter: "all" | "active" | "completed"
   setFilter: (filter: "all" | "active" | "completed") => void
+  onEditTask: (task: Task) => void
 }
 
 const mockTasks = [
@@ -79,8 +92,31 @@ const mockTasks = [
   },
 ]
 
-export default function TaskBoard({ viewMode, filter, setFilter }: TaskBoardProps) {
-  const [tasks, setTasks] = useState(mockTasks)
+export default function TaskBoard({ viewMode, filter, setFilter, onEditTask }: TaskBoardProps) {
+  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+
+  const handleAddTask = (newTask: any) => {
+    const task: Task = {
+      id: Date.now().toString(),
+      title: newTask.title,
+      description: newTask.description,
+      status: newTask.status,
+      priority: newTask.priority,
+      dueDate: newTask.dueDate,
+      assignee: newTask.assignee,
+      tags: newTask.tags,
+      completed: newTask.completed,
+    }
+    setTasks([...tasks, task])
+  }
+
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)))
+  }
+
+  const handleDeleteTask = (id: string) => {
+    setTasks(tasks.filter((t) => t.id !== id))
+  }
 
   const todoTasks = tasks.filter((t) => t.status === "todo")
   const inProgressTasks = tasks.filter((t) => t.status === "in-progress")
@@ -93,7 +129,16 @@ export default function TaskBoard({ viewMode, filter, setFilter }: TaskBoardProp
   }
 
   if (viewMode === "list") {
-    return <TaskList tasks={tasks} setTasks={setTasks} filter={filter} setFilter={setFilter} />
+    return (
+      <TaskList
+        tasks={tasks}
+        setTasks={setTasks}
+        filter={filter}
+        setFilter={setFilter}
+        onEditTask={onEditTask}
+        onDeleteTask={handleDeleteTask}
+      />
+    )
   }
 
   return (
@@ -124,6 +169,9 @@ export default function TaskBoard({ viewMode, filter, setFilter }: TaskBoardProp
           status="todo"
           color="bg-blue-100"
           borderColor="border-blue-200"
+          onAddTask={handleAddTask}
+          onEditTask={onEditTask}
+          onDeleteTask={handleDeleteTask}
         />
         <TaskColumn
           title="En Progreso"
@@ -131,6 +179,9 @@ export default function TaskBoard({ viewMode, filter, setFilter }: TaskBoardProp
           status="in-progress"
           color="bg-amber-100"
           borderColor="border-amber-200"
+          onAddTask={handleAddTask}
+          onEditTask={onEditTask}
+          onDeleteTask={handleDeleteTask}
         />
         <TaskColumn
           title="Completadas"
@@ -138,6 +189,9 @@ export default function TaskBoard({ viewMode, filter, setFilter }: TaskBoardProp
           status="done"
           color="bg-green-100"
           borderColor="border-green-200"
+          onAddTask={handleAddTask}
+          onEditTask={onEditTask}
+          onDeleteTask={handleDeleteTask}
         />
       </div>
     </main>

@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus } from "lucide-react"
+import { Plus, Edit2, Trash2 } from "lucide-react"
 import TaskCard from "@/components/task-card"
 import { Button } from "@/components/ui/button"
 
@@ -22,9 +22,21 @@ interface TaskColumnProps {
   status: string
   color: string
   borderColor: string
+  onAddTask: (task: any) => void
+  onEditTask: (task: Task) => void
+  onDeleteTask: (id: string) => void
 }
 
-export default function TaskColumn({ title, tasks, status, color, borderColor }: TaskColumnProps) {
+export default function TaskColumn({
+  title,
+  tasks,
+  status,
+  color,
+  borderColor,
+  onAddTask,
+  onEditTask,
+  onDeleteTask,
+}: TaskColumnProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -38,7 +50,25 @@ export default function TaskColumn({ title, tasks, status, color, borderColor }:
 
       <div className={`rounded-xl border-2 p-4 space-y-3 min-h-96 bg-white/50 ${borderColor}`}>
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <div key={task.id} className="group relative">
+            <TaskCard task={task} />
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => onEditTask(task)}
+                className="p-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors"
+                title="Editar"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => onDeleteTask(task.id)}
+                className="p-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+                title="Eliminar"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
         ))}
 
         <Button

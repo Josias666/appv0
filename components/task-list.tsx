@@ -19,6 +19,8 @@ interface TaskListProps {
   setTasks: (tasks: Task[]) => void
   filter: "all" | "active" | "completed"
   setFilter: (filter: "all" | "active" | "completed") => void
+  onEditTask: (task: Task) => void
+  onDeleteTask: (id: string) => void
 }
 
 const priorityConfig = {
@@ -33,7 +35,7 @@ const statusConfig = {
   done: { label: "Completada", color: "bg-green-100 text-green-700" },
 }
 
-export default function TaskList({ tasks, setTasks, filter, setFilter }: TaskListProps) {
+export default function TaskList({ tasks, setTasks, filter, setFilter, onEditTask, onDeleteTask }: TaskListProps) {
   const getFilteredTasks = () => {
     if (filter === "completed") return tasks.filter((t) => t.completed)
     if (filter === "active") return tasks.filter((t) => !t.completed)
@@ -42,10 +44,6 @@ export default function TaskList({ tasks, setTasks, filter, setFilter }: TaskLis
 
   const toggleTask = (id: string) => {
     setTasks(tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)))
-  }
-
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id))
   }
 
   const formatDate = (date: string) => {
@@ -84,7 +82,7 @@ export default function TaskList({ tasks, setTasks, filter, setFilter }: TaskLis
           {filteredTasks.map((task) => (
             <div
               key={task.id}
-              className="bg-card rounded-lg border border-border p-4 hover:border-primary/50 hover:shadow-sm transition-all"
+              className="bg-card rounded-lg border border-border p-4 hover:border-primary/50 hover:shadow-sm transition-all group"
             >
               <div className="flex items-start gap-4">
                 {/* Checkbox */}
@@ -124,16 +122,20 @@ export default function TaskList({ tasks, setTasks, filter, setFilter }: TaskLis
                   </div>
                 </div>
 
-                {/* Acciones */}
                 <div className="flex gap-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                    onClick={() => onEditTask(task)}
+                  >
                     <Edit2 className="w-4 h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:text-destructive"
-                    onClick={() => deleteTask(task.id)}
+                    className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                    onClick={() => onDeleteTask(task.id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

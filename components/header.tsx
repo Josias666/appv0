@@ -1,15 +1,16 @@
 "use client"
 
-import { Search, Layout as Layout2, List, Filter } from "lucide-react"
+import { Search, Layout as Layout2, List, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 interface HeaderProps {
   viewMode: "board" | "list"
   setViewMode: (mode: "board" | "list") => void
+  onNewTask: () => void
 }
 
-export default function Header({ viewMode, setViewMode }: HeaderProps) {
+export default function Header({ viewMode, setViewMode, onNewTask }: HeaderProps) {
   return (
     <header className="bg-card border-b border-border px-8 py-4">
       <div className="flex items-center justify-between gap-6">
@@ -24,6 +25,10 @@ export default function Header({ viewMode, setViewMode }: HeaderProps) {
 
         {/* Controles de vista */}
         <div className="flex items-center gap-2">
+          <Button onClick={onNewTask} className="bg-primary hover:bg-primary/90 text-primary-foreground" size="sm">
+            <Plus className="w-4 h-4 mr-1" />
+            Nueva Tarea
+          </Button>
           <Button
             variant={viewMode === "board" ? "default" : "outline"}
             size="sm"
