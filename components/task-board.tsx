@@ -1,199 +1,131 @@
 "use client"
 
 import { useState } from "react"
-import TaskColumn from "@/components/task-column"
-import TaskList from "@/components/task-list"
-
-interface Task {
-  id: string
-  title: string
-  description: string
-  status: string
-  priority: "high" | "medium" | "low"
-  dueDate: string
-  assignee: string
-  tags: string[]
-  completed: boolean
-}
+import { TaskCard } from "@/components/task-card"
+import { Button } from "@/components/ui/button"
+import { LayoutGrid, List, Sparkles } from "lucide-react"
+import type { Task } from "@/components/task-manager"
 
 interface TaskBoardProps {
-  viewMode: "board" | "list"
-  filter: "all" | "active" | "completed"
-  setFilter: (filter: "all" | "active" | "completed") => void
+  currentView: string
+  searchQuery: string
+  tasks: Task[]
   onEditTask: (task: Task) => void
+  onDeleteTask: (taskId: string) => void
+  onToggleComplete: (taskId: string) => void
+  onToggleStar: (taskId: string) => void
 }
 
-const mockTasks = [
-  {
-    id: "1",
-    title: "Diseñar interfaz de usuario",
-    description: "Crear mockups y wireframes del dashboard",
-    status: "in-progress",
-    priority: "high",
-    dueDate: "2024-01-15",
-    assignee: "👤 Juan",
-    tags: ["diseño", "ui"],
-    completed: false,
-  },
-  {
-    id: "2",
-    title: "Configurar base de datos",
-    description: "Establecer conexión y esquema de BD",
-    status: "in-progress",
-    priority: "high",
-    dueDate: "2024-01-12",
-    assignee: "👤 María",
-    tags: ["backend", "bd"],
-    completed: false,
-  },
-  {
-    id: "3",
-    title: "Implementar autenticación",
-    description: "OAuth2 y JWT tokens",
-    status: "todo",
-    priority: "medium",
-    dueDate: "2024-01-20",
-    assignee: "👤 Carlos",
-    tags: ["seguridad", "backend"],
-    completed: false,
-  },
-  {
-    id: "4",
-    title: "Testing de componentes",
-    description: "Unit tests y E2E tests",
-    status: "todo",
-    priority: "medium",
-    dueDate: "2024-01-18",
-    assignee: "👤 Laura",
-    tags: ["testing", "qa"],
-    completed: false,
-  },
-  {
-    id: "5",
-    title: "Documentación del API",
-    description: "Swagger y postman collections",
-    status: "done",
-    priority: "low",
-    dueDate: "2024-01-10",
-    assignee: "👤 Pedro",
-    tags: ["documentación"],
-    completed: true,
-  },
-  {
-    id: "6",
-    title: "Deploy a producción",
-    description: "Configurar CI/CD y desplegar",
-    status: "done",
-    priority: "high",
-    dueDate: "2024-01-05",
-    assignee: "👤 Admin",
-    tags: ["devops", "deploy"],
-    completed: true,
-  },
-]
+export function TaskBoard({
+  currentView,
+  searchQuery,
+  tasks,
+  onEditTask,
+  onDeleteTask,
+  onToggleComplete,
+  onToggleStar,
+}: TaskBoardProps) {
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
 
-export default function TaskBoard({ viewMode, filter, setFilter, onEditTask }: TaskBoardProps) {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
 
-  const handleAddTask = (newTask: any) => {
-    const task: Task = {
-      id: Date.now().toString(),
-      title: newTask.title,
-      description: newTask.description,
-      status: newTask.status,
-      priority: newTask.priority,
-      dueDate: newTask.dueDate,
-      assignee: newTask.assignee,
-      tags: newTask.tags,
-      completed: newTask.completed,
+    if (!matchesSearch) return false
+
+    switch (currentView) {
+      case "completed":
+        return task.status === "completed"
+      case "today":
+        return task.dueDate === new Date().toISOString().split("T")[0]
+      case "upcoming":
+        return task.status !== "completed"
+      case "starred":
+        return task.starred
+      case "work":
+      case "personal":
+      case "learning":
+        return task.project === currentView
+      default:
+        return true
     }
-    setTasks([...tasks, task])
-  }
-
-  const handleUpdateTask = (updatedTask: Task) => {
-    setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)))
-  }
-
-  const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter((t) => t.id !== id))
-  }
-
-  const todoTasks = tasks.filter((t) => t.status === "todo")
-  const inProgressTasks = tasks.filter((t) => t.status === "in-progress")
-  const doneTasks = tasks.filter((t) => t.status === "done")
-
-  const getFilteredTasks = (taskList: typeof tasks) => {
-    if (filter === "completed") return taskList.filter((t) => t.completed)
-    if (filter === "active") return taskList.filter((t) => !t.completed)
-    return taskList
-  }
-
-  if (viewMode === "list") {
-    return (
-      <TaskList
-        tasks={tasks}
-        setTasks={setTasks}
-        filter={filter}
-        setFilter={setFilter}
-        onEditTask={onEditTask}
-        onDeleteTask={handleDeleteTask}
-      />
-    )
-  }
+  })
 
   return (
-    <main className="flex-1 overflow-auto bg-background p-8">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-foreground">Mis Tareas</h2>
-        <div className="flex gap-2">
-          {(["all", "active", "completed"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === f
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground hover:bg-secondary/80"
-              }`}
-            >
-              {f === "all" ? "Todas" : f === "active" ? "Activas" : "Completadas"}
-            </button>
-          ))}
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold text-balance text-foreground">{getViewTitle(currentView)}</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {filteredTasks.length} {filteredTasks.length === 1 ? "tarea" : "tareas"}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1 bg-secondary/50 backdrop-blur-sm rounded-lg p-1 border border-border/50">
+          <Button
+            variant={viewMode === "grid" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("grid")}
+            className="gap-2 transition-all"
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span className="hidden sm:inline">Grid</span>
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className="gap-2 transition-all"
+          >
+            <List className="w-4 h-4" />
+            <span className="hidden sm:inline">Lista</span>
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <TaskColumn
-          title="Por Hacer"
-          tasks={getFilteredTasks(todoTasks)}
-          status="todo"
-          color="bg-blue-100"
-          borderColor="border-blue-200"
-          onAddTask={handleAddTask}
-          onEditTask={onEditTask}
-          onDeleteTask={handleDeleteTask}
-        />
-        <TaskColumn
-          title="En Progreso"
-          tasks={getFilteredTasks(inProgressTasks)}
-          status="in-progress"
-          color="bg-amber-100"
-          borderColor="border-amber-200"
-          onAddTask={handleAddTask}
-          onEditTask={onEditTask}
-          onDeleteTask={handleDeleteTask}
-        />
-        <TaskColumn
-          title="Completadas"
-          tasks={getFilteredTasks(doneTasks)}
-          status="done"
-          color="bg-green-100"
-          borderColor="border-green-200"
-          onAddTask={handleAddTask}
-          onEditTask={onEditTask}
-          onDeleteTask={handleDeleteTask}
-        />
+      <div
+        className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}
+      >
+        {filteredTasks.map((task) => (
+          <TaskCard
+            key={task.id}
+            task={task}
+            viewMode={viewMode}
+            onEdit={onEditTask}
+            onDelete={onDeleteTask}
+            onToggleComplete={onToggleComplete}
+            onToggleStar={onToggleStar}
+          />
+        ))}
       </div>
-    </main>
+
+      {filteredTasks.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center animate-scale-in">
+          <div className="w-16 h-16 bg-muted/50 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 border border-border/50">
+            <Sparkles className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">No hay tareas</h3>
+          <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+            No se encontraron tareas que coincidan con tu búsqueda o filtro
+          </p>
+        </div>
+      )}
+    </div>
   )
+}
+
+function getViewTitle(view: string): string {
+  const titles: Record<string, string> = {
+    all: "Todas las Tareas",
+    today: "Tareas de Hoy",
+    upcoming: "Próximas Tareas",
+    completed: "Tareas Completadas",
+    starred: "Tareas Favoritas",
+    work: "Proyecto: Trabajo",
+    personal: "Proyecto: Personal",
+    learning: "Proyecto: Aprendizaje",
+  }
+  return titles[view] || "Tareas"
 }

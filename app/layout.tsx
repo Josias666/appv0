@@ -8,8 +8,8 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TaskFlow - Gestor de Tareas",
-  description: "Sistema moderno de gestión de tareas estilo Notion",
+  title: "TaskFlow - Gestión de Tareas",
+  description: "Sistema de gestión de tareas estilo Notion con diseño moderno y profesional",
   generator: "v0.app",
   icons: {
     icon: [
